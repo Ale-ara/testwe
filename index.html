@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Instrutores</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.js" crossorigin="anonymous"></script>
+    
+    <script>
+        // Função para carregar os dados da planilha
+        function loadData() {
+            fetch('https://script.google.com/macros/s/AKfycbx_5ynXqQniLq26L3mubhYRSXUT-37ackuluQszjw8mKA-mmOCqEPnMpZxZT3xWX4SwMw/exec')
+                .then(response => response.json())
+                .then(data => {
+                    // Preencher os elementos HTML com os dados obtidos
+                    document.getElementById('date').textContent = data.date;
+                    document.getElementById('importantInfo').textContent = data.importantInfo;
+
+                    // Atualizar a lista de projetos, sugestões e alterações
+                    updateProjects(data.projects);
+
+                    // Atualizar promoções se estiverem disponíveis
+                    updatePromotions(data.promoted);
+
+                    // Atualizar os anexos
+                    updateAttachments(data.attachments);
+                })
+                .catch(error => console.error('Erro ao carregar dados:', error));
+        }
+
+        // Função para atualizar os projetos na lista
+        function updateProjects(projects) {
+            var projectsList = document.getElementById('projects');
+            projectsList.innerHTML = ''; // Limpar a lista antes de adicionar os novos itens
+
+            projects.forEach(function (project) {
+                var projectItems = project.split('/'); // Dividir os itens pelo caractere '/'
+
+                projectItems.forEach(function (item) {
+                    var projectItem = document.createElement('li');
+                    projectItem.textContent = item.trim(); // Adicionar cada item como texto de um novo <li>
+                    projectsList.appendChild(projectItem); // Adicionar o <li> à lista de projetos
+                });
+            });
+        }
+
+        // Função para atualizar as promoções na página
+        function updatePromotions(promotions) {
+            // Definir um mapeamento de IDs para os elementos correspondentes
+            const promotionElements = {
+                VLtoL: 'vl-to-l',
+                MinToVL: 'min-to-vl',
+                EstToMin: 'est-to-min',
+                CapToEst: 'cap-to-est',
+                AvToCap: 'av-to-cap',
+                GradToAv: 'grad-to-av',
+                InsToGrad: 'ins-to-grad',
+                ApToIns: 'ap-to-ins'
+            };
+
+            // Iterar sobre cada promoção e atualizar na página se houver conteúdo
+            for (const key in promotionElements) {
+                const elementId = promotionElements[key];
+                const promotionValue = promotions[key].trim();
+                const element = document.getElementById(elementId);
+
+                if (element) {
+                    if (promotionValue !== '') {
+                        element.querySelector('span').textContent = promotionValue;
+                        element.style.display = 'block'; // Mostrar o elemento
+                    } else {
+                        element.style.display = 'none'; // Ocultar o elemento se não houver promoção
+                    }
+                }
+            }
+        }
+
+        // Função para atualizar os anexos como uma galeria
+        function updateAttachments(attachments) {
+            const attachmentsContainer = document.getElementById('attachments');
+            attachmentsContainer.innerHTML = ''; // Limpar os anexos antes de adicionar os novos
+
+            attachments.forEach(attachment => {
+                const imgElement = document.createElement('img');
+                imgElement.src = attachment;
+                imgElement.className = 'attachment-icon';
+                imgElement.addEventListener('click', () => expandAttachment(attachment));
+                const attachmentBox = document.createElement('div');
+                attachmentBox.className = 'attachment-box';
+                attachmentBox.appendChild(imgElement);
+                attachmentsContainer.appendChild(attachmentBox);
+            });
+        }
+
+        // Função para expandir a imagem
+        function expandAttachment(src) {
+            const overlay = document.getElementById('attachment-overlay');
+            const expandedImage = document.getElementById('attachment-expanded');
+            overlay.style.display = 'block';
+            expandedImage.src = src;
+            expandedImage.style.display = 'block';
+            overlay.addEventListener('click', closeExpandedAttachment);
+            expandedImage.addEventListener('click', closeExpandedAttachment);
+        }
+
+        // Função para fechar a imagem expandida
+        function closeExpandedAttachment() {
+            const overlay = document.getElementById('attachment-overlay');
+            const expandedImage = document.getElementById('attachment-expanded');
+            overlay.style.display = 'none';
+            expandedImage.style.display = 'none';
+            overlay.removeEventListener('click', closeExpandedAttachment);
+            expandedImage.removeEventListener('click', closeExpandedAttachment);
+        }
+
+        // Carregar os dados ao carregar a página
+        window.onload = loadData;
+    </script>
+
+    <script>
+        function tt1(){
+        document.addEventListener("DOMContentLoaded", function () {
+            var loadingScreen = document.getElementById("loading-screen");
+            var container = document.getElementById("container");
+            var credits = document.getElementById("credits");
+
+            setTimeout(function () {
+                loadingScreen.classList.add("hidden");
+                container.classList.add("fade-in");
+                credits.classList.add("show");
+            }, 2000);
+
+            // Função para buscar dados do Google Apps Script
+            function fetchData(endpoint, containerId, transformFunction) {
+                fetch(endpoint)
+                    .then(response => response.json())
+                    .then(data => {
+                        const container = document.getElementById(containerId);
+                        const items = transformFunction(data);
+                        items.forEach(item => {
+                            const div = document.createElement("div");
+                            div.classList.add("item");
+                            div.innerHTML = item;
+                            container.appendChild(div);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+
+            // Função para transformar os dados das entrevistas dos promovidos
+            function transformEntrevistas(data) {
+                return data.map(item => `
+                    <img src="https://www.habbo.com/habbo-imaging/avatarimage?user=${item.nome}&action=std&direction=2&head_direction=2&gesture=std&size=m" alt="Avatar do Habbo" class="avatar">
+                    <div class="item-content">
+                        <h3>Cargo: ${item.cargo}</h3>
+                        <p>Nome: ${item.nome}</p>
+                        <p>Comentário: ${item.comentario}</p>
+                    </div>
+                `);
+            }
+
+            // Função para transformar os dados dos melhores nos cargos
+            function transformMelhores(data) {
+                return data.map(item => `
+                    <img src="https://www.habbo.com/habbo-imaging/avatarimage?user=${item.nome}&action=std&direction=2&head_direction=2&gesture=std&size=m" alt="Avatar do Habbo" class="avatar">
+                    <div class="item-content">
+                        <h3>Cargo: ${item.cargo}</h3>
+                        <p>Nome: ${item.nome}</p>
+                        <p>Pontuação: ${item.pontuacao}</p>
+                    </div>
+                `);
+            }
+
+            // Função para transformar os dados dos promovidos da RCC
+            function transformPromovidosRCC(data) {
+                return data.map(item => `
+                    <img src="https://www.habbo.com/habbo-imaging/avatarimage?user=${item.nome}&action=std&direction=2&head_direction=2&gesture=std&size=m" alt="Avatar do Habbo" class="avatar">
+                    <div class="item-content">
+                        <h3>Nome: ${item.nome}</h3>
+                        <p>Comentário: ${item.dados}</p>
+                    </div>
+                `);
+            }
+
+            // URLs dos endpoints corretos do seu script do Google Apps
+            const entrevistasEndpoint = 'https://script.google.com/macros/s/AKfycbzxMXWGAokuOBogVglfc8tmEiYwAdxj-JLxNc_RSKFGWDh9c9SLPPibw5qAGouJLlkv/exec';
+            const melhoresEndpoint = 'https://script.google.com/macros/s/AKfycbzxMXWGAokuOBogVglfc8tmEiYwAdxj-JLxNc_RSKFGWDh9c9SLPPibw5qAGouJLlkv/exec';
+            const promovidosRCCEndpoint = 'https://script.google.com/macros/s/AKfycbzxMXWGAokuOBogVglfc8tmEiYwAdxj-JLxNc_RSKFGWDh9c9SLPPibw5qAGouJLlkv/exec';
+
+            // Chamar as funções para buscar e exibir os dados
+            fetchData(entrevistasEndpoint, 'entrevistas-container', transformEntrevistas);
+            fetchData(melhoresEndpoint, 'melhores-container', transformMelhores);
+            fetchData(promovidosRCCEndpoint, 'promovidos-container', transformPromovidosRCC);
+        });}
+    </script>
+
+    <script>
+        function tt2(){
+        document.addEventListener('DOMContentLoaded', function () {
+            var url = 'https://script.google.com/macros/s/AKfycby7uqvPuX7fWdssY80JQKoZq0OzxvRVtHAEgW6plu8U4N5P7nP8S0W2SqUt0fvy5iKdMQ/exec';
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Dados recebidos:', data);
+
+                    // Exibe o período de abrangência
+                    var periodoInicio = data.periodoInicio;
+                    var periodoFim = data.periodoFim;
+                    var periodoAbrangencia = document.getElementById('periodo-abrangencia');
+                    periodoAbrangencia.textContent = `Período de abrangência: ${periodoInicio} até ${periodoFim}`;
+
+                    // Exibe os dados dos promovidos
+                    // Exibe os dados dos promovidos
+                    var novidadesContainer = document.getElementById('novidades-semana');
+                    data.promovidos.forEach(item => {
+                        // Verifica se ambos nome e cargo estão preenchidos
+                        if (item.nome.trim() !== '' && item.cargo.trim() !== '') {
+                            var div = document.createElement('div');
+                            div.className = 'promo-item';
+                            div.innerHTML = `
+             <img src="https://www.habbo.com.br/habbo-imaging/avatarimage?img_format=png&user=${encodeURIComponent(item.cargo)}&direction=2&head_direction=3&size=l&gesture=sml&action=wlk,wav" alt="Avatar">
+              <b>${item.cargo} </b>:  promovido(a) a ${item.nome}!
+        `;
+                            novidadesContainer.appendChild(div);
+                        }
+                    });
+
+
+
+
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar dados:', error);
+                });
+        });
+    }
+    </script>
+
+    <script>
+        function selectPage(pageName) {
+
+            const navItems = document.querySelectorAll('.nav_item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+
+
+            const selectedNavItem = document.querySelector(`.nav_item.${pageName}`);
+            if (selectedNavItem) {
+                selectedNavItem.classList.add('active');
+            }
+        }
+    </script>
+
+    <script>
+        function tt3(){
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Documento carregado');
+            fetch('https://script.google.com/macros/s/AKfycbybh1cYcYtvJbzgGuWjzaXSjM5pfOeMt1NVl5-H-RvK68NcBoATyYhxjcQkdpuuoXzOHw/exec')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Dados recebidos:', data);
+                    if (data.projetos) {
+                        const projetosList = document.getElementById('projetos-list');
+                        data.projetos.forEach(projeto => {
+                            console.log('Projeto:', projeto);
+                            const item = document.createElement('div');
+                            item.classList.add('item');
+                            item.innerHTML = `
+                                <div class="item-content">
+                                    <p><span class="blue-text">Ordem ${projeto.ordem}</span>: ${projeto.nome} - ${projeto.dados}</p>
+                                </div>
+                            `;
+                            projetosList.appendChild(item);
+                        });
+                    }
+
+                    if (data.sugestoes) {
+                        const sugestoesList = document.getElementById('sugestoes-list');
+                        data.sugestoes.forEach(sugestao => {
+                            console.log('Sugestão:', sugestao);
+                            const item = document.createElement('div');
+                            item.classList.add('item');
+                            item.innerHTML = `
+                                <div class="item-content">
+                                    <p><span class="blue-text">Ordem ${sugestao.ordem}</span>: ${sugestao.nome} - ${sugestao.dados}</p>
+                                </div>
+                            `;
+                            sugestoesList.appendChild(item);
+                        });
+                    }
+
+                    if (data.correcoes) {
+                        const correcoesList = document.getElementById('correcoes-list');
+                        data.correcoes.forEach(correcao => {
+                            console.log('Correção:', correcao);
+                            const item = document.createElement('div');
+                            item.classList.add('item');
+                            item.innerHTML = `
+                                <div class="item-content">
+                                    <p><span class="blue-text">Ordem ${correcao.ordem}</span>: ${correcao.nome} - ${correcao.dados}</p>
+                                </div>
+                            `;
+                            correcoesList.appendChild(item);
+                        });
+                    }
+
+                    // Esconder a tela de carregamento
+                    const loadingScreen = document.getElementById('loading-screen');
+                    loadingScreen.classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar dados:', error);
+                    alert('Erro ao carregar dados. Por favor, tente novamente mais tarde.');
+                });
+        });}
+    </script>
+    <script>
+        $(function () {
+            function showSection(sectionId) {
+                // Esconde todas as seções
+                $('.section').addClass('none').removeClass('block');
+                // Mostra a seção especificada
+                $(sectionId).addClass('block').removeClass('none');
+                
+
+            }
+    
+            $('#home').click(function (event) {
+                showSection('#r_home');
+                loadData();
+                tt1();
+                tt2();
+                tt3();
+            });
+    
+            $('#promovidos').click(function (event) {
+                showSection('#r_novoins');
+                loadData();
+                tt1();
+                tt2();
+                tt3();
+            });
+    
+            $('#diariooficial').click(function (event) {
+                showSection('#r_diariooficial');
+                loadData();
+                tt1();
+                tt2();
+                tt3();
+            });
+    
+            $('#atadereuniao').click(function (event) {
+                showSection('#r_atadereuniao');
+                loadData();
+                tt1();
+                tt2();
+                tt3();
+            });
+    
+            $('#projetos').click(function (event) {
+                showSection('#r_pagina2');
+                loadData();
+                tt1();
+                tt2();
+                tt3();
+            });
+        });
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css" rel="stylesheet">
+    <!--Estilo index-->
+    <style>
+        a {
+            cursor: pointer;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }
+
+        .banner {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            /* Altura do banner, ajuste conforme necessário */
+            overflow: hidden;
+        }
+
+        .banner img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .banner-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #ffffff;
+            /* Cor do texto */
+        }
+
+        .banner-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .banner-content p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .banner-content .btn {
+            display: inline-block;
+            background-color: #005dad;
+            /* Cor do botão */
+            color: #ffffff;
+            /* Cor do texto do botão */
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .banner-content .btn:hover {
+            background-color: #003f6e;
+            /* Cor do botão ao passar o mouse */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .credits strong {
+            color: #005dad;
+            /* Cor do texto em negrito */
+        }
+
+
+        /* Estilo do Navbar */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            /* Largura do Navbar */
+            height: 100vh;
+            padding: 1rem 1rem 3rem;
+            background-color: #07325A;
+            /* Cor do Navbar */
+            box-shadow: 1px 0 0 rgba(22, 8, 43, 0.1);
+            z-index: 1000;
+            transition: left 0.4s;
+            /* Transição de animação */
+        }
+
+        .nav.show-menu {
+            left: 0;
+            /* Exibir o Navbar ao abrir o menu */
+        }
+
+        .nav_container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: auto;
+        }
+
+        .nav_logo {
+            font-weight: bold;
+            margin-bottom: 2.5rem;
+            font-size: 24px;
+            color: white;
+            /* Cor do texto do logo */
+        }
+
+        .nav_list {
+            display: grid;
+            row-gap: 2.5rem;
+        }
+
+        .nav_subtitle {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: #ffffffc8;
+            /* Cor do subtítulo */
+        }
+
+        .nav_link {
+            display: flex;
+            align-items: center;
+            color: white;
+            /* Cor do texto dos links */
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav_link:hover {
+            color: #005dad;
+            /* Cor ao passar o mouse */
+        }
+
+        .nav_icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .nav_name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .blue-text {
+            font-weight: bold;
+            color: #005dad;
+            /* Cor azul utilizando o mesmo RGB mencionado anteriormente */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+            /* Cor de fundo do container */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            /* Sombra suave */
+        }
+
+        .container h2 {
+            font-size: 2rem;
+            color: #07325A;
+            /* Cor do título */
+            margin-bottom: 1rem;
+        }
+
+        .container p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #333;
+            /* Cor do texto */
+        }
+
+        /* Estilização do Botão de Saiba Mais */
+        .banner-content .btn {
+            display: inline-block;
+            background-color: #005dad;
+            /* Cor do botão */
+            color: #ffffff;
+            /* Cor do texto do botão */
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .banner-content .btn:hover {
+            background-color: #003f6e;
+            /* Cor do botão ao passar o mouse */
+        }
+
+        /* Estilização do Rodapé */
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #ccc;
+            font-size: 14px;
+            color: #666;
+            /* Cor do texto do rodapé */
+        }
+
+        .credits strong {
+            color: #005dad;
+            /* Cor do texto em negrito */
+        }
+    </style>
+    <!--Estilo novoins-->
+    <style>
+        /* Estilo do HTML */
+        html {
+            height: 100%;
+            background-color: #ffffff;
+            /* Background branco para a página */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            overflow-y: auto;
+            background: transparent;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.5s ease-in-out;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #005dad;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .promo-item,
+        .project-item {
+            background-color: #e7e7e7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .promo-item img,
+        .project-item img {
+            margin-right: 10px;
+        }
+
+        .promo-item b,
+        .project-item b {
+            color: #005dad;
+        }
+
+        .logo {
+            width: auto;
+            /* Utiliza o tamanho original da imagem */
+            max-width: 100%;
+            /* Garante que não ultrapasse o tamanho original */
+            height: auto;
+            margin: 40px auto;
+            /* Margem de 40px nas laterais e superior/inferior automático */
+            position: relative;
+            z-index: 0;
+            margin-top: 20px;
+            /* Ajusta a margem superior para descer mais um pouco */
+        }
+
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #bf74c7;
+            font-size: 14px;
+            color: #ffffffc8;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+        }
+
+        .credits p strong {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .credits i {
+            margin-right: 8px;
+        }
+
+        .credits .line-break {
+            display: block;
+            margin-top: -10px;
+        }
+
+        .credits.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #07325A;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0e64b5;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0e64b5;
+        }
+
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: #07325A #0e64b5;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0e64b5;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        /* Esconder a tela de carregamento */
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Animação para o texto "Carregando..." */
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Aplicar a animação ao texto */
+        #loading-screen span {
+            animation: fadeInOut 1s infinite;
+        }
+
+        /* Animação para o conteúdo */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilo do Navbar */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            /* Largura do Navbar */
+            height: 100vh;
+            padding: 1rem 1rem 3rem;
+            background-color: #07325A;
+            /* Cor do Navbar */
+            box-shadow: 1px 0 0 rgba(22, 8, 43, 0.1);
+            z-index: 1000;
+            transition: left 0.4s;
+            /* Transição de animação */
+        }
+
+        .nav.show-menu {
+            left: 0;
+            /* Exibir o Navbar ao abrir o menu */
+        }
+
+        .nav_container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: auto;
+        }
+
+        .nav_logo {
+            font-weight: bold;
+            margin-bottom: 2.5rem;
+            font-size: 24px;
+            color: white;
+            /* Cor do texto do logo */
+        }
+
+        .nav_list {
+            display: grid;
+            row-gap: 2.5rem;
+        }
+
+        .nav_subtitle {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: #ffffffc8;
+            /* Cor do subtítulo */
+        }
+
+        .nav_link {
+            display: flex;
+            align-items: center;
+            color: white;
+            /* Cor do texto dos links */
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav_link:hover {
+            color: #005dad;
+            /* Cor ao passar o mouse */
+        }
+
+        .nav_icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .nav_name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        /* Estilo para o item ativo no navbar */
+        .nav_item.active {
+            background-color: #00ad00;
+            /* Cor de fundo para indicar ativo */
+        }
+
+        .nav_item.active .nav_name {
+            color: #ffffff;
+            /* Cor do texto para indicar ativo */
+        }
+    </style>
+    <!--Estilo pagina2-->
+    <style>
+        /* Estilo do HTML */
+        html {
+            height: 100%;
+            background-color: #ffffff;
+            /* Background branco para a página */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            overflow-y: auto;
+            background: transparent;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.5s ease-in-out;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #005dad;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .item {
+            background-color: #e7e7e7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+            display: flex;
+            /* Para que os itens fiquem em linha */
+            align-items: center;
+            /* Alinha os itens verticalmente */
+            gap: 10px;
+            /* Espaçamento entre os elementos internos */
+        }
+
+        .item-content {
+            flex: 1;
+            /* Ocupa todo o espaço disponível */
+        }
+
+        .item-content h3,
+        .item-content p {
+            margin: 0;
+            /* Remove as margens padrão */
+        }
+
+        .logo {
+            width: auto;
+            /* Utiliza o tamanho original da imagem */
+            max-width: 100%;
+            /* Garante que não ultrapasse o tamanho original */
+            height: auto;
+            margin: 40px auto;
+            /* Margem de 40px nas laterais e superior/inferior automático */
+            position: relative;
+            z-index: 0;
+            margin-top: 20px;
+            /* Ajusta a margem superior para descer mais um pouco */
+        }
+
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #bf74c7;
+            font-size: 14px;
+            color: #ffffffc8;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+        }
+
+        .credits p strong {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .credits i {
+            margin-right: 8px;
+        }
+
+        .credits .line-break {
+            display: block;
+            margin-top: -10px;
+        }
+
+        .credits.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #07325A;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0e64b5;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0e64b5;
+        }
+
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: #07325A #0e64b5;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0e64b5;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        /* Esconder a tela de carregamento */
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Animação para o texto "Carregando..." */
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Aplicar a animação ao texto */
+        #loading-screen span {
+            animation: fadeInOut 1s infinite;
+        }
+
+        /* Animação para o conteúdo */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilo do Navbar */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            /* Largura do Navbar */
+            height: 100vh;
+            padding: 1rem 1rem 3rem;
+            background-color: #07325A;
+            /* Cor do Navbar */
+            box-shadow: 1px 0 0 rgba(22, 8, 43, 0.1);
+            z-index: 1000;
+            transition: left 0.4s;
+            /* Transição de animação */
+        }
+
+        .nav.show-menu {
+            left: 0;
+            /* Exibir o Navbar ao abrir o menu */
+        }
+
+        .nav_container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: auto;
+        }
+
+        .nav_logo {
+            font-weight: bold;
+            margin-bottom: 2.5rem;
+            font-size: 24px;
+            color: white;
+            /* Cor do texto do logo */
+        }
+
+        .nav_list {
+            display: grid;
+            row-gap: 2.5rem;
+        }
+
+        .nav_subtitle {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: #ffffffc8;
+            /* Cor do subtítulo */
+        }
+
+        .nav_link {
+            display: flex;
+            align-items: center;
+            color: white;
+            /* Cor do texto dos links */
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav_link:hover {
+            color: #005dad;
+            /* Cor ao passar o mouse */
+        }
+
+        .nav_icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .nav_name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .blue-text {
+            font-weight: bold;
+            color: #005dad;
+            /* Cor azul utilizando o mesmo RGB mencionado anteriormente */
+        }
+
+        @media (max-width: 768px) {
+            .blue-text {
+                font-weight: bold;
+                color: #005dad;
+                font-size: 14px;
+                /* Exemplo de tamanho de fonte para dispositivos móveis */
+                line-height: 1.4;
+                /* Exemplo de altura da linha para dispositivos móveis */
+            }
+        }
+    </style>
+    <!--Estilo diariooficial-->
+    <style>
+        /* Estilo do HTML */
+        html {
+            height: 100%;
+            background-color: #ffffff;
+            /* Background branco para a página */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            overflow-y: auto;
+            background: transparent;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.5s ease-in-out;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #005dad;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .item {
+            background-color: #e7e7e7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+            display: flex;
+            /* Para que os itens fiquem em linha */
+            align-items: center;
+            /* Alinha os itens verticalmente */
+            gap: 10px;
+            /* Espaçamento entre os elementos internos */
+        }
+
+        .item-content {
+            flex: 1;
+            /* Ocupa todo o espaço disponível */
+        }
+
+        .item-content h3,
+        .item-content p {
+            margin: 0;
+            /* Remove as margens padrão */
+        }
+
+        .logo {
+            width: auto;
+            /* Utiliza o tamanho original da imagem */
+            max-width: 100%;
+            /* Garante que não ultrapasse o tamanho original */
+            height: auto;
+            margin: 40px auto;
+            /* Margem de 40px nas laterais e superior/inferior automático */
+            position: relative;
+            z-index: 0;
+            margin-top: 20px;
+            /* Ajusta a margem superior para descer mais um pouco */
+        }
+
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #bf74c7;
+            font-size: 14px;
+            color: #ffffffc8;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+        }
+
+        .credits p strong {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .credits i {
+            margin-right: 8px;
+        }
+
+        .credits .line-break {
+            display: block;
+            margin-top: -10px;
+        }
+
+        .credits.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #07325A;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0e64b5;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0e64b5;
+        }
+
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: #07325A #0e64b5;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0e64b5;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        /* Esconder a tela de carregamento */
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Animação para o texto "Carregando..." */
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Aplicar a animação ao texto */
+        #loading-screen span {
+            animation: fadeInOut 1s infinite;
+        }
+
+        /* Animação para o conteúdo */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilo do Navbar */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            /* Largura do Navbar */
+            height: 100vh;
+            padding: 1rem 1rem 3rem;
+            background-color: #07325A;
+            /* Cor do Navbar */
+            box-shadow: 1px 0 0 rgba(22, 8, 43, 0.1);
+            z-index: 1000;
+            transition: left 0.4s;
+            /* Transição de animação */
+        }
+
+        .nav.show-menu {
+            left: 0;
+            /* Exibir o Navbar ao abrir o menu */
+        }
+
+        .nav_container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: auto;
+        }
+
+        .nav_logo {
+            font-weight: bold;
+            margin-bottom: 2.5rem;
+            font-size: 24px;
+            color: white;
+            /* Cor do texto do logo */
+        }
+
+        .nav_list {
+            display: grid;
+            row-gap: 2.5rem;
+        }
+
+        .nav_subtitle {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: #ffffffc8;
+            /* Cor do subtítulo */
+        }
+
+        .nav_link {
+            display: flex;
+            align-items: center;
+            color: white;
+            /* Cor do texto dos links */
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav_link:hover {
+            color: #005dad;
+            /* Cor ao passar o mouse */
+        }
+
+        .nav_icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .nav_name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .blue-text {
+            font-weight: bold;
+            color: #005dad;
+            /* Cor azul utilizando o mesmo RGB mencionado anteriormente */
+        }
+
+        @media (max-width: 768px) {
+            .blue-text {
+                font-weight: bold;
+                color: #005dad;
+                font-size: 14px;
+                /* Exemplo de tamanho de fonte para dispositivos móveis */
+                line-height: 1.4;
+                /* Exemplo de altura da linha para dispositivos móveis */
+            }
+        }
+    </style>
+    <!--Estilo atadereuniao-->
+
+
+    <style>
+        html {
+            height: 100%;
+            background-color: #ffffff;
+            /* Background branco para a página */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            overflow-y: auto;
+            background: transparent;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.5s ease-in-out;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            color: #005dad;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .item {
+            background-color: #e7e7e7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item-content {
+            flex: 1;
+            /* Ocupa todo o espaço disponível */
+        }
+
+        .item-content h3,
+        .item-content p {
+            margin: 0;
+            /* Remove as margens padrão */
+        }
+
+        .logo {
+            width: auto;
+            /* Utiliza o tamanho original da imagem */
+            max-width: 100%;
+            /* Garante que não ultrapasse o tamanho original */
+            height: auto;
+            margin: 40px auto;
+            /* Margem de 40px nas laterais e superior/inferior automático */
+            position: relative;
+            z-index: 0;
+            margin-top: 20px;
+            /* Ajusta a margem superior para descer mais um pouco */
+        }
+
+        .credits {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #bf74c7;
+            font-size: 14px;
+            color: #ffffffc8;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1s ease;
+        }
+
+        .strong {
+            color: #005dad;
+        }
+
+
+        .credits p strong {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .credits i {
+            margin-right: 8px;
+        }
+
+        .credits .line-break {
+            display: block;
+            margin-top: -10px;
+        }
+
+        .credits.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #07325A;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0e64b5;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0e64b5;
+        }
+
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: #07325A #0e64b5;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0e64b5;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        /* Esconder a tela de carregamento */
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Animação para o texto "Carregando..." */
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Aplicar a animação ao texto */
+        #loading-screen span {
+            animation: fadeInOut 1s infinite;
+        }
+
+        /* Animação para o conteúdo */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilo do Navbar */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            /* Largura do Navbar */
+            height: 100vh;
+            padding: 1rem 1rem 3rem;
+            background-color: #07325A;
+            /* Cor do Navbar */
+            box-shadow: 1px 0 0 rgba(22, 8, 43, 0.1);
+            z-index: 1000;
+            transition: left 0.4s;
+            /* Transição de animação */
+        }
+
+        .nav.show-menu {
+            left: 0;
+            /* Exibir o Navbar ao abrir o menu */
+        }
+
+        .nav_container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: auto;
+        }
+
+        .nav_logo {
+            font-weight: bold;
+            margin-bottom: 2.5rem;
+            font-size: 24px;
+            color: white;
+            /* Cor do texto do logo */
+        }
+
+        .nav_list {
+            display: grid;
+            row-gap: 2.5rem;
+        }
+
+        .nav_subtitle {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: #ffffffc8;
+            /* Cor do subtítulo */
+        }
+
+        .nav_link {
+            display: flex;
+            align-items: center;
+            color: white;
+            /* Cor do texto dos links */
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav_link:hover {
+            color: #005dad;
+            /* Cor ao passar o mouse */
+        }
+
+        .nav_icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .nav_name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .blue-text {
+            font-weight: bold;
+            color: #005dad;
+            /* Cor azul utilizando o mesmo RGB mencionado anteriormente */
+        }
+
+        .section #date {
+            font-weight: normal;
+            color: #005dad;
+            /* Cor preta (ou outra cor desejada) */
+            margin-left: 10px;
+            /* Espaço entre o texto principal e a data */
+        }
+
+        .attachments-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .attachment-box {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .attachment-content {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            background-color: #fff;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .attachment-box:hover .attachment-content {
+            display: block;
+        }
+
+        .attachment-icon {
+            width: 50px;
+            /* Ajuste o tamanho do ícone conforme necessário */
+            height: 50px;
+            /* Ajuste o tamanho do ícone conforme necessário */
+            cursor: pointer;
+        }
+
+
+        blue-text {
+            font-weight: bold;
+            color: #005dad;
+        }
+
+        @media (max-width: 768px) {
+            .blue-text {
+                font-weight: bold;
+                color: #005dad;
+                font-size: 14px;
+                /* Exemplo de tamanho de fonte para dispositivos móveis */
+                line-height: 1.4;
+                /* Exemplo de altura da linha para dispositivos móveis */
+            }
+        }
+    </style>
+    <style>
+        .none {
+            display: none;
+        }
+
+        .block {
+            display: block;
+        }
+    </style>
+
+</head>
+
+<body>
+    <nav class="nav" id="navbar">
+        <div class="nav_container">
+            <div class="nav_logo">
+                [SRC]
+            </div>
+            <div class="nav_list">
+                <div  class="nav_item">
+                    <a href="#" class="nav_link">
+                        <i class='bx bx-home nav_icon'></i>
+                        <span id="home" class="nav_name">Home</span>
+                    </a>
+                </div>
+                <div class="nav_item">
+                    <div  class="nav_item">
+                        <a href="#" class="nav_link">
+                            <i class='bx bx-news nav_icon'></i>
+                            <span id="atadereuniao" class="nav_name">Ata de Reunião</span>
+                        </a>
+                    </div>
+                    <div class="nav_item">
+                        <a href="#" class="nav_link">
+                            <i class='bx bx-news nav_icon'></i>
+                            <span id="diariooficial" class="nav_name">Diario Oficial</span>
+                        </a>
+                    </div>
+                    <div class="nav_item">
+                        <a href="#" class="nav_link">
+                            <i class='bx bx-news nav_icon'></i>
+                            <span id="promovidos"  class="nav_name">Promovidos da Semana</span>
+                        </a>
+                    </div>
+                    <div  class="nav_item">
+                        <a href="#" class="nav_link">
+                            <i class='bx bx-news nav_icon'></i>
+                            <span id="projetos" class="nav_name">Projetos / Sugestões / Correções</span>
+                        </a>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="nav_developed">
+                Desenvolvido por [SRC]
+            </div>
+        </div>
+    </nav>
+    <!-- Aqui fica a home -->
+    <div class="none section" id="r_home">
+        <div class="banner">
+            <img src="https://i.imgur.com/sVUAYxC.gif" alt="Banner Destaque">
+            <div class="banner-content">
+                <h1>Bem-vindo à Página Inicial!</h1>
+                <p>Descrição ou mensagem introdutória aqui.</p>
+                <a href="#" class="btn">Saiba Mais</a>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>Seção 1</h2>
+            <p>Conteúdo da seção 1...</p>
+
+            <h2>Seção 2</h2>
+            <p>Conteúdo da seção 2...</p>
+
+            <!-- Mais conteúdo pode ser adicionado conforme necessário -->
+
+            <div class="credits">
+                <p>Feito por <strong>Qox</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer pode ser adicionado aqui -->
+    </div>
+    <div class="none section" id="r_pagina2">
+        <div class="container">
+            <img class="logo" src="https://i.imgur.com/sVUAYxC.gif" alt="Habbo Logo">
+            <h1>Projetos / Sugestões / Correções</h1>
+            <div class="section" id="description">
+                <p><span class="blue-text">O Setor de Relações Comunicativas dos Instrutores</span> informa as novidades
+                    da
+                    semana! Nela, encontrará encontrará os projetos aprovados na companhia.</p>
+            </div>
+
+            <div class="section" id="projetos">
+                <h2>Projetos</h2>
+                <div id="projetos-list"></div>
+            </div>
+
+            <div class="section" id="sugestoes">
+                <h2>Sugestões</h2>
+                <div id="sugestoes-list"></div>
+            </div>
+
+            <div class="section" id="correcoes">
+                <h2>Correções</h2>
+                <div id="correcoes-list"></div>
+            </div>
+
+            <div class="credits" id="credits">
+                <p>Feito por <strong>[SRC]</strong></p>
+                <i class='bx bxs-smile'></i>
+                <span class="line-break"></span>
+            </div>
+        </div>
+
+
+    </div>
+    <div class="none section" id="r_novoins">
+        <div class="container">
+            <img class="logo" src="https://i.imgur.com/sVUAYxC.gif" alt="Habbo Logo">
+
+            <div class="section">
+                <h1>Promovidos da Semana</h1>
+                <p id="periodo-abrangencia">Período de abrangência: Aguardando dados...</p>
+            </div>
+
+            <!-- Exibir todos os itens de promoção dinamicamente -->
+            <div class="section" id="novidades-semana">
+                <!-- Os itens serão adicionados aqui dinamicamente -->
+            </div>
+        </div>
+    </div>
+    <div class="none section" id="r_diariooficial">
+        <div class="container">
+            <img class="logo" src="https://i.imgur.com/sVUAYxC.gif" alt="Habbo Logo">
+            <h1>Diário Oficial</h1>
+            <div class="section" id="description">
+                <p><span class="blue-text">O Setor de Relações Comunicativas dos Instrutores</span>, estarão dispostas
+                    curiosidades e informações adicionais que ocorreram ao longo da semana com os membros da nossa
+                    companhia.
+                </p>
+            </div>
+
+
+            <div class="section" id="sugestoes">
+                <h2>Entrevistas dos promovidos:</h2>
+                <h4>Confira os depoimentos de nossos promovidos e as expectativas para seus novos cargos!</h4>
+                <div id="entrevistas-container"></div>
+            </div>
+
+            <div class="section" id="projetos">
+                <h2>Melhores</h2>
+                <div id="melhores-container"></div>
+            </div>
+
+            <div class="section" id="correcoes">
+                <h2>Promovidos na RCC</h2>
+                <div id="promovidos-container"></div>
+            </div>
+
+            <div class="credits" id="credits">
+                <p>Feito por <strong>[SRC]</strong></p>
+                <i class='bx bxs-smile'></i>
+                <span class="line-break"></span>
+            </div>
+        </div>
+
+
+    </div>
+    <div class="block section" id="r_atadereuniao">
+        <div class="container">
+            <img class="logo" src="https://i.imgur.com/sVUAYxC.gif" alt="Habbo Logo">
+            <h1>ATA de Reunião</h1>
+            <div class="item">
+                <div class="section" id="description">
+                    <p></p><span class="blue-text">O Setor de Relações Comunicativas dos Instrutores</span> informa
+                    neste tópico, são colocadas as informações abordadas durante as reuniões gerais, sejam avisos e
+                    mudanças na companhia, projetos aprovados e/ou promoções.</p>
+                    <span>Caso tenha perdido algo da reunião realizada no dia<span blue-text id="date">Período de
+                            abrangência: Aguardando dados...</span>, veja aqui.</span>
+
+                </div>
+
+
+            </div>
+            <div class="section">
+                <h2>Informações Importantes</h2>
+                <div class="item">
+                    <p><span id="importantInfo"></span></p>
+                </div>
+            </div>
+
+
+            <div class="section">
+                <h2>Projetos / Correções / Sugestões</h2>
+                <div class="item">
+                    <p><span id="projects"></span></p>
+                </div>
+            </div>
+
+
+
+            <div class="section">
+                <h2>Promovidos</h2>
+                <div class="item">
+
+                    <div id="promoted">
+                        <!-- Promoção VL > L -->
+                        <div class="promoted-item" id="vl-to-l">
+                            <strong class="blue-text">VL > L:</strong> <span id="VLtoL"></span>
+                        </div>
+
+                        <!-- Promoção Min > VL -->
+                        <div class="promoted-item" id="min-to-vl">
+                            <strong class="blue-text">Min > VL:</strong> <span id="MinToVL"></span>
+                        </div>
+
+                        <!-- Promoção Est > Min -->
+                        <div class="promoted-item" id="est-to-min">
+                            <strong class="blue-text">Est > Min:</strong> <span id="EstToMin"></span>
+                        </div>
+
+                        <!-- Promoção Cap > Est -->
+                        <div class="promoted-item" id="cap-to-est">
+                            <strong class="blue-text">Cap > Est:</strong> <span id="CapToEst"></span>
+                        </div>
+
+                        <!-- Promoção Av > Cap -->
+                        <div class="promoted-item" id="av-to-cap">
+                            <strong class="blue-text">Av > Cap:</strong> <span id="AvToCap"></span>
+                        </div>
+
+                        <!-- Promoção Grad > Av -->
+                        <div class="promoted-item" id="grad-to-av">
+                            <strong class="blue-text">Grad > Av:</strong> <span id="GradToAv"></span>
+                        </div>
+
+                        <!-- Promoção Ins > Grad -->
+                        <div class="promoted-item" id="ins-to-grad">
+                            <strong class="blue-text">Ins > Grad:</strong> <span id="InsToGrad"></span>
+                        </div>
+
+                        <!-- Promoção Ap > Ins -->
+                        <div class="promoted-item" id="ap-to-ins">
+                            <strong class="blue-text">Ap > Ins:</strong> <span id="ApToIns"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="section">
+                <h2>Anexos</h2>
+                <div class="attachments-container" id="attachments"></div>
+            </div>
+
+            <div class="attachments-container" id="attachments">
+                <!-- Anexos serão inseridos aqui pelo JavaScript -->
+            </div>
+
+            <!-- Template para exibição expandida -->
+            <div id="attachment-overlay" class="attachment-overlay" style="display:none;"></div>
+            <img id="attachment-expanded" class="attachment-expanded" style="display:none;" />
+
+
+
+            <div class="credits" id="credits">
+                <p>Feito por <strong>[SRC]</strong></p>
+                <i class='bx bxs-smile'></i>
+                <span class="line-break"></span>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
